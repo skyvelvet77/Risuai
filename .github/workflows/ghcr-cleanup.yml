@@ -1,0 +1,22 @@
+name: Cleanup GHCR (untagged)
+
+on:
+  schedule:
+    - cron: "0 4 * * 0" # 매주 일요일 13:00(KST)쯤
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete untagged versions (keep last 10)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: risuai-custom
+          package-type: container
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 10
