@@ -10,7 +10,7 @@ import { simplifySchema } from "src/ts/util"
 
 import { extractJSON, getOpenAIJSONSchema } from "../../templates/jsonSchema"
 import { applyChatTemplate } from "../../templates/chatTemplate"
-import { supportsInlayImage } from "../../files/inlays"
+import { supportsInlayImage } from "../../files/inlaySupport"
 import { callTool, decodeToolCall, encodeToolCall } from "../../mcp/mcp"
 import type { RequestDataArgumentExtended, requestDataResponse, StreamResponseChunk } from '../request'
 import { applyParameters, setObjectValue } from '../shared'

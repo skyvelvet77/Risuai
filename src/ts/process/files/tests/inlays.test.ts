@@ -54,17 +54,21 @@ vi.mock('uuid', () => ({
     v4: vi.fn(() => 'test-uuid-1234'),
 }))
 
-vi.mock(import('src/ts/storage/database.svelte'), () => ({
-    getDatabase: vi.fn(),
+vi.mock('src/ts/storage/database.svelte', () => ({
+    appVer: '1234.5.67',
+    getDatabase: vi.fn(
+        () =>
+            ({
+                aiModel: 'test-model',
+                characters: [],
+                enabledModules: [],
+                modules: [],
+                moduleIntergration: '',
+            }) as any,
+    ),
+    getCurrentChat: vi.fn(() => null),
+    getCurrentCharacter: vi.fn(() => null),
 }))
-
-vi.mock(
-    import('src/ts/util'),
-    () =>
-        ({
-            asBuffer: (arr: Uint8Array) => arr,
-        }) as typeof import('src/ts/util'),
-)
 
 //#endregion
 

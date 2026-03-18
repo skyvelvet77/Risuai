@@ -1,9 +1,15 @@
 import localforage from "localforage";
 import { v4 } from "uuid";
 import { getImageType } from "src/ts/media";
-import { getDatabase } from "../../storage/database.svelte";
-import { getModelInfo, LLMFlags, LLMFormat } from "src/ts/model/modellist";
-import { asBuffer } from "../../util";
+
+function asBuffer(arr: Uint8Array<ArrayBufferLike>): Uint8Array<ArrayBuffer>;
+function asBuffer(arr: ArrayBufferLike): ArrayBuffer;
+function asBuffer(arr: Uint8Array<ArrayBufferLike> | ArrayBufferLike): Uint8Array<ArrayBuffer> | ArrayBuffer {
+    if (arr instanceof Uint8Array) {
+        return arr as unknown as Uint8Array<ArrayBuffer>
+    }
+    return arr as unknown as ArrayBuffer
+}
 
 export type InlayAsset = {
     data: string | Blob
@@ -129,7 +135,7 @@ export type InlaySignature = {
         type: 'function'|'text'
         content: string
     }[],
-    sourceFormat: LLMFormat,
+    sourceFormat: import("src/ts/model/types").LLMFormat,
     source: string
 }
 
@@ -220,11 +226,6 @@ export async function setInlayAsset(id: string, img: InlayAsset){
 
 export async function removeInlayAsset(id: string){
     await inlayStorage.removeItem(id)
-}
-
-export function supportsInlayImage(){
-    const db = getDatabase()
-    return getModelInfo(db.aiModel).flags.includes(LLMFlags.hasImageInput)
 }
 
 export async function reencodeImage(img:Uint8Array){

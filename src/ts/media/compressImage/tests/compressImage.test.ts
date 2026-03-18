@@ -1,3 +1,4 @@
+import { writable } from 'svelte/store'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { DBState } from '../../../stores.svelte'
 import { compressImage } from '../compressImage'
@@ -11,6 +12,10 @@ vi.mock(
                     imageCompression: false,
                 },
             },
+            selIdState: {
+                selId: 0,
+            },
+            selectedCharID: writable(0),
         }) as typeof import('../../../stores.svelte'),
 )
 
