@@ -37,6 +37,11 @@ export class NodeStorage{
         return this.JSONStringlifyAndbase64Url(header) + "." + this.JSONStringlifyAndbase64Url(payload) + "." + sigString
     }
 
+    async getProxyAuth(){
+        await this.checkAuth()
+        return await this.createAuth()
+    }
+
     async getKeyPair():Promise<CryptoKeyPair>{
         
         const storedKey = await getKeypairStore('node')

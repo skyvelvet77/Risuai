@@ -44,6 +44,24 @@ import { isTauri, isNodeServer } from "./platform";
 
 export const forageStorage = new AutoStorage()
 
+async function getNodeServerProxyAuth(): Promise<string | null> {
+    if (!isNodeServer) {
+        return null
+    }
+
+    await forageStorage.Init()
+
+    const storageWithProxyAuth = forageStorage.realStorage as {
+        getProxyAuth?: () => Promise<string>
+    }
+
+    if (typeof storageWithProxyAuth?.getProxyAuth === 'function') {
+        return await storageWithProxyAuth.getProxyAuth()
+    }
+
+    return localStorage.getItem('risuauth')
+}
+
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 interface fetchLog {
@@ -774,9 +792,9 @@ async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<Global
 
         // Add risu-auth header for Node.js server
         if (isNodeServer) {
-            const auth = localStorage.getItem('risuauth');
-            if (auth) {
-                headers["risu-auth"] = auth;
+            const proxyAuth = await getNodeServerProxyAuth();
+            if (proxyAuth) {
+                headers["risu-auth"] = proxyAuth;
             }
         }
 
@@ -1581,6 +1599,7 @@ export async function fetchNative(url: string, arg: {
 
     }
     else if (throughProxy) {
+        const proxyAuth = isNodeServer ? await getNodeServerProxyAuth() : null
 
         const r = await fetch(proxyUrl, {
             body: realBody as any,
@@ -1589,13 +1608,13 @@ export async function fetchNative(url: string, arg: {
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json",
                 "x-risu-tk": "use",
-                ...(isNodeServer && localStorage.getItem('risuauth') ? { "risu-auth": localStorage.getItem('risuauth') } : {}),
+                ...(proxyAuth ? { "risu-auth": proxyAuth } : {}),
                 ...(DBState?.db?.requestLocation && { "risu-location": DBState.db.requestLocation }),
             } : {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json",
-                ...(isNodeServer && localStorage.getItem('risuauth') ? { "risu-auth": localStorage.getItem('risuauth') } : {}),
+                ...(proxyAuth ? { "risu-auth": proxyAuth } : {}),
                 ...(DBState?.db?.requestLocation && { "risu-location": DBState.db.requestLocation }),
             },
             method: arg.method,

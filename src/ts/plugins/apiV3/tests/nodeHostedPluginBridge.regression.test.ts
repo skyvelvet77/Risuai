@@ -5,6 +5,7 @@ import { describe, expect, test } from 'vitest'
 const repoRoot = resolve(import.meta.dirname, '../../../../..')
 const factorySource = readFileSync(resolve(repoRoot, 'src/ts/plugins/apiV3/factory.ts'), 'utf8')
 const globalApiSource = readFileSync(resolve(repoRoot, 'src/ts/globalApi.svelte.ts'), 'utf8')
+const nodeStorageSource = readFileSync(resolve(repoRoot, 'src/ts/storage/nodeStorage.ts'), 'utf8')
 
 describe('node-hosted V3 plugin bridge regressions', () => {
   test('guest bridge transfers stream bodies back to the host', () => {
@@ -19,5 +20,14 @@ describe('node-hosted V3 plugin bridge regressions', () => {
     expect(globalApiSource).toMatch(/let throughProxy = \(!isTauri\) && \(!db\.usePlainFetch\)/)
     expect(globalApiSource).toMatch(/const proxyUrl = !isTauri && !isNodeServer \? hubURL \+ `\/proxy2` : `\/proxy2`/)
     expect(globalApiSource).toMatch(/const r = await fetch\(proxyUrl, \{/)
+  })
+
+  test('node-hosted proxy requests derive risu-auth from NodeStorage instead of localStorage', () => {
+    expect(nodeStorageSource).toMatch(/async getProxyAuth\(\)/)
+    expect(nodeStorageSource).toMatch(/await this\.checkAuth\(\)/)
+    expect(nodeStorageSource).toMatch(/return await this\.createAuth\(\)/)
+    expect(globalApiSource).toMatch(/const proxyAuth = await getNodeServerProxyAuth\(\)/)
+    expect(globalApiSource).toMatch(/if \(proxyAuth\) \{\s*headers\["risu-auth"\] = proxyAuth;\s*\}/)
+    expect(globalApiSource).toMatch(/\.\.\.\(proxyAuth \? \{ "risu-auth": proxyAuth \} : \{\}\)/)
   })
 })
