@@ -545,7 +545,28 @@ export class SandboxHost {
                     }
 
 
-                    response.result = this.serialize(result);
+                    // Safari/WebKit doesn't support ReadableStream as postMessage Transferable
+                    // (throws DataCloneError). Pre-read Response body to string to bypass.
+                    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium/.test(navigator.userAgent);
+                    if (isSafari && result instanceof Response && result.body) {
+                        try {
+                            const bodyText = await result.text();
+                            response.result = {
+                                __type: 'CALLBACK_STREAMS',
+                                __specialType: 'Response',
+                                value: bodyText,
+                                init: {
+                                    status: result.status,
+                                    statusText: result.statusText,
+                                    headers: Array.from(result.headers.entries())
+                                }
+                            };
+                        } catch (_) {
+                            response.result = this.serialize(result);
+                        }
+                    } else {
+                        response.result = this.serialize(result);
+                    }
 
                 } catch (err: any) {
                     response.error = err.message || "Host execution error";
