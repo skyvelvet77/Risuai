@@ -1466,7 +1466,8 @@ export async function fetchNative(url: string, arg: {
     }
 
     const db = getDatabase()
-    let throughProxy = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch)
+    let throughProxy = (!isTauri) && (!db.usePlainFetch)
+    const proxyUrl = !isTauri && !isNodeServer ? hubURL + `/proxy2` : `/proxy2`
     let fetchLogIndex = addFetchLog({
         body: new TextDecoder().decode(realBody),
         headers: arg.headers,
@@ -1581,7 +1582,7 @@ export async function fetchNative(url: string, arg: {
     }
     else if (throughProxy) {
 
-        const r = await fetch(hubURL + `/proxy2`, {
+        const r = await fetch(proxyUrl, {
             body: realBody as any,
             headers: arg.useRisuTk ? {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
